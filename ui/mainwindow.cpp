@@ -14,6 +14,7 @@
 #include <QMenuBar>
 
 #include "tabbeddocumentview.h"
+#include "codedocument.h"
 
 namespace Ui {
     MainWindow::MainWindow()
@@ -26,10 +27,15 @@ namespace Ui {
         setStyle(new QMotifStyle());
 
         QList<QAction*> toolBarActions;
-        QAction *openAction = new QAction(QIcon(":/icons/open"), "Open", this);
-        openAction->setShortcut(QKeySequence::Open);
-        connect(openAction, SIGNAL(triggered()), SLOT(onFileOpenAction()));
-        toolBarActions.append(openAction);
+        QAction *action = new QAction(QIcon(":/icons/open"), "Open", this);
+        action->setShortcut(QKeySequence::Open);
+        connect(action, SIGNAL(triggered()), SLOT(onFileOpenAction()));
+        toolBarActions.append(action);
+
+        action = new QAction(QIcon(":/icons/save"), "Save", this);
+        action->setShortcut(QKeySequence::Save);
+        connect(action, SIGNAL(triggered()), SLOT(onFileSaveAction()));
+        toolBarActions.append(action);
 
         QMenuBar *menuBar = new QMenuBar(this);
         menuBar->setGeometry(0, 0, 600, 23);
@@ -52,21 +58,23 @@ namespace Ui {
         dockWidget = new QDockWidget("Console output", this);
         //dockWidget->setFeatures(QDockWidget::NoDockWidgetFeatures);
         addDockWidget(Qt::BottomDockWidgetArea, dockWidget, Qt::Horizontal);
+
+        resize(800, 600);
     }
 
     void MainWindow::onFileOpenAction()
     {
         QString filePath = QFileDialog::getOpenFileName(this, "Open File", "./");
-        TabbedDocumentView::Document *document = new TabbedDocumentView::Document();
-        document->fileName = filePath.right(filePath.length()-filePath.lastIndexOf("/")-1);
+        CodeDocument *document = new CodeDocument(filePath);
+        document->load();
 
-        QFile file(filePath);
-        file.open(QIODevice::ReadOnly | QIODevice::Text);
-        QString content = file.readAll();
-        file.close();
-        document->filePath = filePath;
-        document->text = content;
         documentView->addDocument(document);
         documentView->setCurrentDocument(document);
+    }
+
+    void MainWindow::onFileSaveAction()
+    {
+        CodeDocument *document = documentView->currentDocument();
+        document->save();
     }
 }

@@ -11,11 +11,13 @@ SOURCES += test.cpp \
     ui/tabbeddocumentview.cpp \
     ui/linenumberarea.cpp \
     ui/codeeditor.cpp \
-    ui/mainwindow.cpp
+    ui/mainwindow.cpp \
+    codedocument.cpp
 HEADERS += ui/tabbeddocumentview.h \
     ui/codeeditor.h \
     ui/linenumberarea.h \
-    ui/mainwindow.h
+    ui/mainwindow.h \
+    codedocument.h
 FORMS += 
 OTHER_FILES += 
 RESOURCES += ui/eddy.qrc

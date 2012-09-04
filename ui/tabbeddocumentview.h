@@ -5,6 +5,7 @@
 
 class QTabBar;
 class QMenu;
+class CodeDocument;
 
 namespace Ui {
     class CodeEditor;
@@ -21,15 +22,16 @@ namespace Ui {
         };
 
         TabbedDocumentView(QWidget *parent = 0);
-        void addDocument(Document *document);
-        void setCurrentDocument(Document *document);
+        void addDocument(CodeDocument *document);
+        void setCurrentDocument(CodeDocument *document);
+        CodeDocument *currentDocument() const;
 
     private:
         QTabBar *tabBar;
         QMenu *contextMenu;
         CodeEditor *editor;
 
-        QList<Document *> documents;
+        QList<CodeDocument *> documents;
 
         int contextIndex;
 
@@ -37,6 +39,8 @@ namespace Ui {
         void setupTabBar();
         void setupEditor();
         void addDummyData();
+        int getDocumentIndex(CodeDocument *document) const;
+        void updateTab(int index);
 
     private Q_SLOTS:
         void onTabBarCurrentChanged(int index);
@@ -50,7 +54,7 @@ namespace Ui {
         void onFocusNext();
         void onFocusPrevious();
 
-        void onTextChanged();
+        void onDocumentContentDirtyChanged();
     };
 }
 

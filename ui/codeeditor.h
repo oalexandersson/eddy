@@ -13,13 +13,14 @@ namespace Ui {
 
         void lineNumberAreaPaintEvent(QPaintEvent *event);
         int lineNumberAreaWidth();
+        void setDocument(QTextDocument *document);
 
     protected:
         virtual void resizeEvent(QResizeEvent *event);
         virtual void keyPressEvent(QKeyEvent *e);
 
     private slots:
-        void updateLineNumberAreaWidth(int newBlockCount);
+        void updateLineNumberAreaWidth();
         void highlightCurrentLine();
         void updateLineNumberArea(const QRect &, int);
 

@@ -2,6 +2,7 @@
 
 #include <QTextBlock>
 #include <QPainter>
+#include <QDebug>
 
 #include "linenumberarea.h"
 
@@ -10,11 +11,11 @@ namespace Ui {
     {
         lineNumberArea = new LineNumberArea(this);
 
-        connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
+        connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth()));
         connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
         connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(highlightCurrentLine()));
 
-        updateLineNumberAreaWidth(0);
+        updateLineNumberAreaWidth();
         highlightCurrentLine();
     }
 
@@ -32,9 +33,12 @@ namespace Ui {
         return space;
     }
 
-    void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
+    void CodeEditor::updateLineNumberAreaWidth()
     {
+        int margin = lineNumberAreaWidth();
+        qDebug() << margin;
         setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
+
     }
 
     void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
@@ -49,7 +53,7 @@ namespace Ui {
         }
 
         if (rect.contains(viewport()->rect()))
-            updateLineNumberAreaWidth(0);
+            updateLineNumberAreaWidth();
     }
 
     void CodeEditor::resizeEvent(QResizeEvent *e)
@@ -115,5 +119,11 @@ namespace Ui {
         } else {
             QPlainTextEdit::keyPressEvent(e);
         }
+    }
+
+    void CodeEditor::setDocument(QTextDocument *document)
+    {
+        QPlainTextEdit::setDocument(document);
+        updateLineNumberAreaWidth();
     }
 }

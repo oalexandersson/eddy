@@ -20,7 +20,7 @@ namespace Ui {
 
     private Q_SLOTS:
         void onFileOpenAction();
-
+        void onFileSaveAction();
     };
 }
 

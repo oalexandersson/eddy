@@ -8,28 +8,53 @@
 #include <QShortcut>
 #include <QTextCharFormat>
 #include <QList>
+#include <QFileInfo>
+#include <QPushButton>
 
 #include "ui/codeeditor.h"
+#include "codedocument.h"
 
 namespace Ui {
     TabbedDocumentView::TabbedDocumentView(QWidget *parent) : QWidget(parent)
     {
         setupUi();
-        addDummyData();
+        //addDummyData();
     }
 
-    void TabbedDocumentView::addDocument(Document *document)
+    void TabbedDocumentView::addDocument(CodeDocument *document)
     {
         if (documents.isEmpty()) {
             editor->show();
         }
         documents.append(document);
         int index = tabBar->count();
-        tabBar->insertTab(index, document->fileName);
-        tabBar->setTabToolTip(index, document->filePath);
+        tabBar->insertTab(index, QString());
+        updateTab(index);
+        connect(document, SIGNAL(contentDirty()), SLOT(onDocumentContentDirtyChanged()));
+        connect(document, SIGNAL(contentClean()), SLOT(onDocumentContentDirtyChanged()));
     }
 
-    void TabbedDocumentView::setCurrentDocument(Document *document)
+    void TabbedDocumentView::setCurrentDocument(CodeDocument *document)
+    {
+        int index = getDocumentIndex(document);
+        if (index >= 0) {
+            tabBar->setCurrentIndex(index);
+        }
+    }
+
+    CodeDocument *TabbedDocumentView::currentDocument() const
+    {
+        int index = tabBar->currentIndex();
+        CodeDocument *document = 0;
+
+        if (index >= 0) {
+            document = documents.at(index);
+        }
+
+        return document;
+    }
+
+    int TabbedDocumentView::getDocumentIndex(CodeDocument *document) const
     {
         int foundIndex = -1;
         int index = 0;
@@ -40,9 +65,21 @@ namespace Ui {
             }
         }
 
-        if (foundIndex != -1) {
-            tabBar->setCurrentIndex(foundIndex);
+        return foundIndex;
+    }
+
+    void TabbedDocumentView::updateTab(int index)
+    {
+        CodeDocument *document = documents.at(index);
+        if (document->isDirty()) {
+            tabBar->setTabText(index, document->fileInfo().fileName().append(" *"));
+            tabBar->setTabTextColor(index, Qt::darkGreen);
         }
+        else {
+            tabBar->setTabText(index, document->fileInfo().fileName());
+            tabBar->setTabTextColor(index, Qt::black);
+        }
+        tabBar->setTabToolTip(index, document->fileInfo().absoluteFilePath());
     }
 
     void TabbedDocumentView::setupUi()
@@ -90,54 +127,55 @@ namespace Ui {
         QTextCharFormat format;
         format.setFontFamily("monospace");
         editor->setCurrentCharFormat(format);
-
-        connect(editor, SIGNAL(textChanged()), SLOT(onTextChanged()));
     }
 
     void TabbedDocumentView::addDummyData()
     {
-        Document *document = new Document();
-        document->fileName = "mainview.h";
-        document->text = "class MainView";
-        document->filePath = "src/mainview.h";
-        addDocument(document);
-
-        document = new Document();
-        document->fileName = "mainview.cpp";
-        document->text = "#include \"mainview.h\"";
-        document->filePath = "src/mainview.cpp";
-        addDocument(document);
-
-        document = new Document();
-        document->fileName = "tabbeddocumentview.h";
-        document->text = "class TabbedDocumentView";
-        document->filePath = "src/tabbeddocumentview.h";
-        addDocument(document);
-
-        document = new Document();
-        document->fileName = "tabbeddocumentview.cpp";
-        document->text = "#include \"tabbeddocumentview.h\"";
-        document->filePath = "src/tabbeddocumentview.cpp";
-        addDocument(document);
+//        Document *document = new Document();
+//        document->fileName = "mainview.h";
+//        document->text = "class MainView";
+//        document->filePath = "src/mainview.h";
+//        addDocument(document);
+//
+//        document = new Document();
+//        document->fileName = "mainview.cpp";
+//        document->text = "#include \"mainview.h\"";
+//        document->filePath = "src/mainview.cpp";
+//        addDocument(document);
+//
+//        document = new Document();
+//        document->fileName = "tabbeddocumentview.h";
+//        document->text = "class TabbedDocumentView";
+//        document->filePath = "src/tabbeddocumentview.h";
+//        addDocument(document);
+//
+//        document = new Document();
+//        document->fileName = "tabbeddocumentview.cpp";
+//        document->text = "#include \"tabbeddocumentview.h\"";
+//        document->filePath = "src/tabbeddocumentview.cpp";
+//        addDocument(document);
     }
 
     void TabbedDocumentView::onTabBarCurrentChanged(int index)
     {
         if (index >= 0) {
-            editor->setPlainText(documents.at(index)->text);
+            editor->setDocument(&documents.at(index)->textDocument());
+        }
+        else {
+            editor->setDocument(0);
         }
     }
 
     void TabbedDocumentView::onTabBarTabMoved(int newIndex, int oldIndex)
     {
-        Document *movedDocument = documents.at(oldIndex);
+        CodeDocument *movedDocument = documents.at(oldIndex);
         documents.removeAt(oldIndex);
         documents.insert(newIndex, movedDocument);
     }
 
     void TabbedDocumentView::onTabBarTabCloseRequested(int index)
     {
-        Document *closedDocument = documents.at(index);
+        CodeDocument *closedDocument = documents.at(index);
         documents.removeAt(index);
         tabBar->removeTab(index);
         delete closedDocument;
@@ -182,10 +220,14 @@ namespace Ui {
         tabBar->setCurrentIndex(newIndex);
     }
 
-    void TabbedDocumentView::onTextChanged()
+    void TabbedDocumentView::onDocumentContentDirtyChanged()
     {
-        int currentIndex = tabBar->currentIndex();
-        Document *document = documents.at(currentIndex);
-        document->text = editor->toPlainText();
+        CodeDocument *document = dynamic_cast<CodeDocument*>(sender());
+        if (!document) {
+            return;
+        }
+
+        int index = getDocumentIndex(document);
+        updateTab(index);
     }
 }

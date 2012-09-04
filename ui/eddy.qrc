@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/icons">
         <file alias="open">icons/document-open.png</file>
+        <file alias="save">icons/document-save.png</file>
     </qresource>
 </RCC>
