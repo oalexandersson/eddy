@@ -43,9 +43,9 @@ namespace Ui {
         contextMenu->addAction("Properties", this, SLOT(onPropertiesFromContextMenu()));
         contextMenu->addAction("Close", this, SLOT(onCloseFromContextMenu()));
 
-        QShortcut *shortcut = new QShortcut(QKeySequence::Close, this, SLOT(onCloseCurrent()), 0, Qt::WindowShortcut);
-        shortcut = new QShortcut(QKeySequence::NextChild, this, SLOT(onFocusNext()), 0, Qt::WindowShortcut);
-        shortcut = new QShortcut(QKeySequence::PreviousChild, this, SLOT(onFocusPrevious()), 0, Qt::WindowShortcut);
+        new QShortcut(QKeySequence::Close, this, SLOT(onCloseCurrent()), 0, Qt::WindowShortcut);
+        new QShortcut(QKeySequence::NextChild, this, SLOT(onFocusNext()), 0, Qt::WindowShortcut);
+        new QShortcut(QKeySequence::PreviousChild, this, SLOT(onFocusPrevious()), 0, Qt::WindowShortcut);
     }
 
     void TabbedDocumentView::setupTabBar()
@@ -122,7 +122,6 @@ namespace Ui {
 
     void TabbedDocumentView::onTabBarContextMenuRequested(QPoint point)
     {
-        qDebug() << "Context menu at: " << point;
         contextIndex = tabBar->tabAt(point);
         QPoint globalPos = tabBar->mapToGlobal(point);
         contextMenu->exec(globalPos);
