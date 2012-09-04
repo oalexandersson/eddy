@@ -15,12 +15,14 @@ namespace Ui {
     public:
         class Document {
         public:
-            QString filename;
+            QString fileName;
+            QString filePath;
             QString text;
         };
 
         TabbedDocumentView(QWidget *parent = 0);
         void addDocument(Document *document);
+        void setCurrentDocument(Document *document);
 
     private:
         QTabBar *tabBar;

@@ -7,6 +7,7 @@
 #include <QKeySequence>
 #include <QShortcut>
 #include <QTextCharFormat>
+#include <QList>
 
 #include "ui/codeeditor.h"
 
@@ -23,7 +24,25 @@ namespace Ui {
             editor->show();
         }
         documents.append(document);
-        tabBar->addTab(document->filename);
+        int index = tabBar->count();
+        tabBar->insertTab(index, document->fileName);
+        tabBar->setTabToolTip(index, document->filePath);
+    }
+
+    void TabbedDocumentView::setCurrentDocument(Document *document)
+    {
+        int foundIndex = -1;
+        int index = 0;
+
+        for( index = 0; index < documents.size() && foundIndex == -1; index++) {
+            if (documents.at(index) == document) {
+                foundIndex = index;
+            }
+        }
+
+        if (foundIndex != -1) {
+            tabBar->setCurrentIndex(foundIndex);
+        }
     }
 
     void TabbedDocumentView::setupUi()
@@ -40,7 +59,7 @@ namespace Ui {
         layout->addWidget(editor);
 
         contextMenu = new QMenu(this);
-        contextMenu->addAction("Properties", this, SLOT(onPropertiesFromContextMenu()));
+        contextMenu->addAction("Properties (NYI)", this, SLOT(onPropertiesFromContextMenu()));
         contextMenu->addAction("Close", this, SLOT(onCloseFromContextMenu()));
 
         new QShortcut(QKeySequence::Close, this, SLOT(onCloseCurrent()), 0, Qt::WindowShortcut);
@@ -54,6 +73,8 @@ namespace Ui {
         tabBar->setMovable(true);
         tabBar->setExpanding(false);
         tabBar->setContextMenuPolicy(Qt::CustomContextMenu);
+        tabBar->setTabsClosable(true);
+        tabBar->setElideMode(Qt::ElideRight);
 
         connect(tabBar, SIGNAL(currentChanged(int)), SLOT(onTabBarCurrentChanged(int)));
         connect(tabBar, SIGNAL(tabMoved(int,int)), SLOT(onTabBarTabMoved(int, int)));
@@ -76,29 +97,35 @@ namespace Ui {
     void TabbedDocumentView::addDummyData()
     {
         Document *document = new Document();
-        document->filename = "mainview.h";
+        document->fileName = "mainview.h";
         document->text = "class MainView";
+        document->filePath = "src/mainview.h";
         addDocument(document);
 
         document = new Document();
-        document->filename = "mainview.cpp";
+        document->fileName = "mainview.cpp";
         document->text = "#include \"mainview.h\"";
+        document->filePath = "src/mainview.cpp";
         addDocument(document);
 
         document = new Document();
-        document->filename = "tabbeddocumentview.h";
+        document->fileName = "tabbeddocumentview.h";
         document->text = "class TabbedDocumentView";
+        document->filePath = "src/tabbeddocumentview.h";
         addDocument(document);
 
         document = new Document();
-        document->filename = "tabbeddocumentview.cpp";
+        document->fileName = "tabbeddocumentview.cpp";
         document->text = "#include \"tabbeddocumentview.h\"";
+        document->filePath = "src/tabbeddocumentview.cpp";
         addDocument(document);
     }
 
     void TabbedDocumentView::onTabBarCurrentChanged(int index)
     {
-        editor->setPlainText(documents.at(index)->text);
+        if (index >= 0) {
+            editor->setPlainText(documents.at(index)->text);
+        }
     }
 
     void TabbedDocumentView::onTabBarTabMoved(int newIndex, int oldIndex)
